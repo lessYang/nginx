@@ -140,7 +140,7 @@ ngx_event_accept(ngx_event_t *ev)
 
         ngx_accept_disabled = ngx_cycle->connection_n / 8
                               - ngx_cycle->free_connection_n;
-
+        // 创建一个连接, 连接socket为s
         c = ngx_get_connection(s, ev->log);
 
         if (c == NULL) {
@@ -157,7 +157,7 @@ ngx_event_accept(ngx_event_t *ev)
 #if (NGX_STAT_STUB)
         (void) ngx_atomic_fetch_add(ngx_stat_active, 1);
 #endif
-
+        // 每一个connect都有自己的pool(内存池)
         c->pool = ngx_create_pool(ls->pool_size, ev->log);
         if (c->pool == NULL) {
             ngx_close_accepted_connection(c);
@@ -203,10 +203,10 @@ ngx_event_accept(ngx_event_t *ev)
 
         *log = ls->log;
 
-        c->recv = ngx_recv;
-        c->send = ngx_send;
-        c->recv_chain = ngx_recv_chain;
-        c->send_chain = ngx_send_chain;
+        c->recv = ngx_recv;  // 默认 ngx_unix_recv
+        c->send = ngx_send;  // 默认 ngx_unix_send
+        c->recv_chain = ngx_recv_chain; // ngx_readv_chain
+        c->send_chain = ngx_send_chain; // ngx_linux_sendfile_chain
 
         c->log = log;
         c->pool->log = log;
@@ -236,7 +236,7 @@ ngx_event_accept(ngx_event_t *ev)
             rev->ready = 1;
         }
 
-        if (ev->deferred_accept) {
+        if (ev->deferred_accept) { // 默认0
             rev->ready = 1;
 #if (NGX_HAVE_KQUEUE)
             rev->available = 1;
@@ -295,7 +295,7 @@ ngx_event_accept(ngx_event_t *ev)
 
         }
 #endif
-
+        // 非EPOLL
         if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) {
             if (ngx_add_conn(c) == NGX_ERROR) {
                 ngx_close_accepted_connection(c);
@@ -305,7 +305,8 @@ ngx_event_accept(ngx_event_t *ev)
 
         log->data = NULL;
         log->handler = NULL;
-
+        
+        // 默认 ngx_http_init_connection(ngx_http_request.c)
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {

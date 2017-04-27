@@ -316,7 +316,10 @@ ngx_http_init_connection(ngx_connection_t *c)
     c->log_error = NGX_ERROR_INFO;
 
     rev = c->read;
-    rev->handler = ngx_http_wait_request_handler;
+    // 第一次初始化
+    // 读事件处理函数
+    // 写事件处理函数
+    rev->handler = ngx_http_wait_request_handler; 
     c->write->handler = ngx_http_empty_handler;
 
 #if (NGX_HTTP_V2)
@@ -355,7 +358,7 @@ ngx_http_init_connection(ngx_connection_t *c)
         c->log->action = "reading PROXY protocol";
     }
 
-    if (rev->ready) {
+    if (rev->ready) { // epoll 模式下 rev->ready 默认为0
         /* the deferred accept(), iocp */
 
         if (ngx_use_accept_mutex) {
