@@ -574,7 +574,7 @@ ngx_epoll_done(ngx_cycle_t *cycle)
     nevents = 0;
 }
 
-
+// linux epoll模式下，当连接建立的时候, 这里是增加事件的地方，而不是 ngx_epoll_add_connection
 static ngx_int_t
 ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 {
@@ -603,7 +603,7 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 #endif
     }
 
-    if (e->active) {
+    if (e->active) {// 主要是判断是否已经存在读或者写事件, 这样就是为了修改或者增加event
         op = EPOLL_CTL_MOD;
         events |= prev;
 
@@ -630,7 +630,7 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
         return NGX_ERROR;
     }
 
-    ev->active = 1;
+    ev->active = 1; // 当前事件设为激活状态
 #if 0
     ev->oneshot = (flags & NGX_ONESHOT_EVENT) ? 1 : 0;
 #endif
