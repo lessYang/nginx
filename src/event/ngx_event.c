@@ -565,7 +565,7 @@ ngx_timer_signal_handler(int signo)
 
 #endif
 
-
+// 事件循环的起始点
 static ngx_int_t
 ngx_event_process_init(ngx_cycle_t *cycle)
 {
@@ -681,7 +681,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     }
 
 #endif
-
+    // connection 数组
     cycle->connections =
         ngx_alloc(sizeof(ngx_connection_t) * cycle->connection_n, cycle->log);
     if (cycle->connections == NULL) {
@@ -689,7 +689,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     }
 
     c = cycle->connections;
-
+    // connection_n 个 读事件对应 connections
     cycle->read_events = ngx_alloc(sizeof(ngx_event_t) * cycle->connection_n,
                                    cycle->log);
     if (cycle->read_events == NULL) {
@@ -699,9 +699,9 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     rev = cycle->read_events;
     for (i = 0; i < cycle->connection_n; i++) {
         rev[i].closed = 1;
-        rev[i].instance = 1;
+        rev[i].instance = 1; // 用来判断连接事件是否过期
     }
-
+    // connections_n 个 写事件, 对应 connections
     cycle->write_events = ngx_alloc(sizeof(ngx_event_t) * cycle->connection_n,
                                     cycle->log);
     if (cycle->write_events == NULL) {
@@ -716,7 +716,8 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     i = cycle->connection_n;
     next = NULL;
 
-    do {
+    do { // 形成connection的环, 尾节点只想头节点
+         // 连续(内存连续)的循环链表
         i--;
 
         c[i].data = next;
@@ -727,7 +728,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         next = &c[i];
     } while (i);
 
-    cycle->free_connections = next;
+    cycle->free_connections = next; // 此时free_connections为头节点
     cycle->free_connection_n = cycle->connection_n;
 
     /* for each listening socket */
@@ -819,7 +820,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         }
 
 #else
-
+        // 目前nginx并不是只支持SOCK_STREAM
         rev->handler = (c->type == SOCK_STREAM) ? ngx_event_accept
                                                 : ngx_event_recvmsg;
 

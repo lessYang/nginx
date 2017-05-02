@@ -15,7 +15,7 @@
 
 typedef struct ngx_listening_s  ngx_listening_t;
 
-struct ngx_listening_s {
+struct ngx_listening_s {  // 监听结构
     ngx_socket_t        fd;
 
     struct sockaddr    *sockaddr;
@@ -119,30 +119,33 @@ typedef enum {
 
 
 struct ngx_connection_s {
-    void               *data;
-    ngx_event_t        *read;
-    ngx_event_t        *write;
+    // 未使用的情况下 data = next ngx_connection_s
+    // 如果连接正在使用, ngx_http_connection_t(根据模块定义)
+    // 为具体的业务
+    void               *data;  
+    ngx_event_t        *read;  // 读事件
+    ngx_event_t        *write; // 写事件
 
-    ngx_socket_t        fd;
+    ngx_socket_t        fd;    // socket 
 
-    ngx_recv_pt         recv;
-    ngx_send_pt         send;
-    ngx_recv_chain_pt   recv_chain;
-    ngx_send_chain_pt   send_chain;
+    ngx_recv_pt         recv;  // 读函数 (ngx_recv.c)
+    ngx_send_pt         send;  // 写函数 (ngx_send.c)
+    ngx_recv_chain_pt   recv_chain;  // ngx_readv_chain
+    ngx_send_chain_pt   send_chain;  // ngx_linux_sendfile_chain
 
-    ngx_listening_t    *listening;
+    ngx_listening_t    *listening;  // 对应的监听接口信息
 
     off_t               sent;
 
     ngx_log_t          *log;
 
-    ngx_pool_t         *pool;
+    ngx_pool_t         *pool;  // 该连接的内存池，每一个连接有自己独有的
 
-    int                 type;
+    int                 type;  // SOCK_STREAM
 
-    struct sockaddr    *sockaddr;
-    socklen_t           socklen;
-    ngx_str_t           addr_text;
+    struct sockaddr    *sockaddr;  // 自己的sockaddr
+    socklen_t           socklen;   // sizeof(sockaddr)
+    ngx_str_t           addr_text;  // IP 信息
 
     ngx_str_t           proxy_protocol_addr;
     in_port_t           proxy_protocol_port;
@@ -151,7 +154,7 @@ struct ngx_connection_s {
     ngx_ssl_connection_t  *ssl;
 #endif
 
-    struct sockaddr    *local_sockaddr;
+    struct sockaddr    *local_sockaddr;  // 本地监听端口信息
     socklen_t           local_socklen;
 
     ngx_buf_t          *buffer;

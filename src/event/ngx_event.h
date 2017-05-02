@@ -28,14 +28,14 @@ typedef struct {
 
 
 struct ngx_event_s {
-    void            *data;
+    void            *data;  // 一般存放 对应的connection_s
 
     unsigned         write:1;
 
-    unsigned         accept:1;
+    unsigned         accept:1; // 是否是accept连接, 1 是 0 否
 
     /* used to detect the stale events in kqueue and epoll */
-    unsigned         instance:1;
+    unsigned         instance:1;  // 判断事件是否过期, 只有recv事件设置
 
     /*
      * the event was passed or would be passed to a kernel;
@@ -106,7 +106,8 @@ struct ngx_event_s {
 #else
     unsigned         available:1;
 #endif
-
+    // 回调事件, 对应不同的业务接口, 比如accept的recv事件对应ngx_event_accept
+    // ngx_event_recvmsg
     ngx_event_handler_pt  handler;
 
 

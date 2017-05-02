@@ -45,8 +45,8 @@ struct ngx_cycle_s {
     ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
 
     ngx_connection_t        **files;
-    ngx_connection_t         *free_connections;
-    ngx_uint_t                free_connection_n;
+    ngx_connection_t         *free_connections; // 空闲连接, 初始化为 connections
+    ngx_uint_t                free_connection_n; // 空闲连接数量, 初始化为 connection_n
 
     ngx_module_t            **modules;
     ngx_uint_t                modules_n;
@@ -55,7 +55,7 @@ struct ngx_cycle_s {
     ngx_queue_t               reusable_connections_queue;
     ngx_uint_t                reusable_connections_n;
 
-    ngx_array_t               listening;
+    ngx_array_t               listening;  // ngx_listening_t数组, 对应监听端口
     ngx_array_t               paths;
 
     ngx_array_t               config_dump;
@@ -65,12 +65,12 @@ struct ngx_cycle_s {
     ngx_list_t                open_files;
     ngx_list_t                shared_memory;
 
-    ngx_uint_t                connection_n;
+    ngx_uint_t                connection_n; // 连接数量, 同时代表了事件的数量
     ngx_uint_t                files_n;
 
-    ngx_connection_t         *connections;
-    ngx_event_t              *read_events;
-    ngx_event_t              *write_events;
+    ngx_connection_t         *connections;  // 连接数组 (connection_n)
+    ngx_event_t              *read_events;  // 读事件数组, connection_n
+    ngx_event_t              *write_events; // 写事件数组, connection_n
 
     ngx_cycle_t              *old_cycle;
 
