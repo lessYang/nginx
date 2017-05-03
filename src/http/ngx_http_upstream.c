@@ -9,6 +9,48 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
+/**
+1. {response to client}
+ngx_process_events_and_timers
+    |
+ngx_epoll_process_events
+    |
+ngx_http_upstream_handler
+    |
+ngx_http_upstream_process_events
+2. {客户端在upstream尚未返回的时候关闭了链接} 
+ngx直接关闭上游连接,如果上游连接有返回(假设没处理F包),ngx直接Reset了
+处理上游连接
+ngx_process_events_and_timers
+    |
+ngx_epoll_process_events
+    |
+ngx_http_request_handler
+    |
+ngx_http_upstream_rd_check_broken_connection
+    |
+ngx_http_upstream_check_broken_connection
+    |
+ngx_http_upstream_finalize_request
+    |
+ngx_close_connection
+
+// 处理用户连接
+ngx_process_events_and_timers
+    |
+ngx_epoll_process_events
+    |
+ngx_http_request_handler
+    |
+ngx_http_run_posted_requests
+    |
+ngx_http_terminate_handler
+    |
+ngx_http_close_request
+    |
+ngx_http_close_connection
+
+*/
 
 #if (NGX_HTTP_CACHE)
 static ngx_int_t ngx_http_upstream_cache(ngx_http_request_t *r,
@@ -1239,10 +1281,10 @@ ngx_http_upstream_handler(ngx_event_t *ev)
     }
 
     if (ev->write) {
-        u->write_event_handler(r, u);
+        u->write_event_handler(r, u); // 调用 ngx_http_upstream_send_request_handler
 
     } else {
-        u->read_event_handler(r, u);
+        u->read_event_handler(r, u); // 调用ngx_http_upstream_process_handler
     }
 
     ngx_http_run_posted_requests(c);
@@ -1482,7 +1524,7 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u)
     u->state->connect_time = (ngx_msec_t) -1;
     u->state->header_time = (ngx_msec_t) -1;
 
-    rc = ngx_event_connect_peer(&u->peer);
+    rc = ngx_event_connect_peer(&u->peer); // 获取了连接, 连接上游服务器
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "http upstream connect: %i", rc);
@@ -1512,7 +1554,7 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u)
 
     c->data = r;
 
-    c->write->handler = ngx_http_upstream_handler;
+    c->write->handler = ngx_http_upstream_handler; // 事件触发后的调用函数
     c->read->handler = ngx_http_upstream_handler;
 
     u->write_event_handler = ngx_http_upstream_send_request_handler;
@@ -2331,7 +2373,7 @@ ngx_http_upstream_process_header(ngx_http_request_t *r, ngx_http_upstream_t *u)
     }
 
     if (!r->subrequest_in_memory) {
-        ngx_http_upstream_send_response(r, u);
+        ngx_http_upstream_send_response(r, u); // 返回客户端
         return;
     }
 
@@ -3169,7 +3211,7 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u)
     u->read_event_handler = ngx_http_upstream_process_upstream;
     r->write_event_handler = ngx_http_upstream_process_downstream;
 
-    ngx_http_upstream_process_upstream(r, u);
+    ngx_http_upstream_process_upstream(r, u); // 数据下行，写回客户端
 }
 
 

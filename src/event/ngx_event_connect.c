@@ -31,14 +31,14 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     ngx_event_t       *rev, *wev;
     ngx_connection_t  *c;
 
-    rc = pc->get(pc, pc->data);
+    rc = pc->get(pc, pc->data); // ?
     if (rc != NGX_OK) {
         return rc;
     }
 
-    type = (pc->type ? pc->type : SOCK_STREAM);
+    type = (pc->type ? pc->type : SOCK_STREAM); // 连接类型
 
-    s = ngx_socket(pc->sockaddr->sa_family, type, 0);
+    s = ngx_socket(pc->sockaddr->sa_family, type, 0); // 创建socket
 
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, pc->log, 0, "%s socket %d",
                    (type == SOCK_STREAM) ? "stream" : "dgram", s);
@@ -50,7 +50,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     }
 
 
-    c = ngx_get_connection(s, pc->log);
+    c = ngx_get_connection(s, pc->log); // 获得一个connection对象
 
     if (c == NULL) {
         if (ngx_close_socket(s) == -1) {
@@ -73,7 +73,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
         }
     }
 
-    if (ngx_nonblocking(s) == -1) {
+    if (ngx_nonblocking(s) == -1) {  // s 被设置成了nonblocking
         ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                       ngx_nonblocking_n " failed");
 
@@ -137,7 +137,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
 #endif
 
-        if (bind(s, pc->local->sockaddr, pc->local->socklen) == -1) {
+        if (bind(s, pc->local->sockaddr, pc->local->socklen) == -1) { // 确定了本地的地址, 一般用不上
             ngx_log_error(NGX_LOG_CRIT, pc->log, ngx_socket_errno,
                           "bind(%V) failed", &pc->local->name);
 
