@@ -14,11 +14,11 @@
 
 
 typedef struct {
-    void        *elts;
-    ngx_uint_t   nelts;
-    size_t       size;
-    ngx_uint_t   nalloc;
-    ngx_pool_t  *pool;
+    void        *elts;    // 存放元素
+    ngx_uint_t   nelts;   // 目前已有的元素数量
+    size_t       size;    // 元素内存
+    ngx_uint_t   nalloc;  // 容量
+    ngx_pool_t  *pool;    // 内存池, 实际内存
 } ngx_array_t;
 
 
@@ -36,12 +36,12 @@ ngx_array_init(ngx_array_t *array, ngx_pool_t *pool, ngx_uint_t n, size_t size)
      * that "array->nelts" may be used without having been initialized
      */
 
-    array->nelts = 0;
-    array->size = size;
-    array->nalloc = n;
-    array->pool = pool;
+    array->nelts = 0;    // 已经有的元素数量
+    array->size = size;  // 单个元素占用的大小
+    array->nalloc = n;   // 容量
+    array->pool = pool;  // 用于分配内存
 
-    array->elts = ngx_palloc(pool, n * size);
+    array->elts = ngx_palloc(pool, n * size); // 实际分配内存
     if (array->elts == NULL) {
         return NGX_ERROR;
     }
