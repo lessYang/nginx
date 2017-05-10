@@ -47,19 +47,19 @@ struct ngx_pool_large_s {
 
 
 typedef struct {
-    u_char               *last;
-    u_char               *end;
-    ngx_pool_t           *next;
-    ngx_uint_t            failed;
-} ngx_pool_data_t;
+    u_char               *last;  // 当前未使用内存边界
+    u_char               *end;   // 内存终止边界, (end - last) 为可用内存
+    ngx_pool_t           *next;  // 下一个内存池
+    ngx_uint_t            failed; // 分配内存失败次数, 达到一定程度后, 该内存不再使用
+} ngx_pool_data_t; // 开辟内存的地方
 
-
+// 内存池结构
 struct ngx_pool_s {
-    ngx_pool_data_t       d;
-    size_t                max;
-    ngx_pool_t           *current;
+    ngx_pool_data_t       d;        // 实际内存
+    size_t                max;      // max 为小内存和大内存的分界点, > max 直接内存分配, <= max 从d里分配内存
+    ngx_pool_t           *current;  // 代表当前的 ngx_pool_s
     ngx_chain_t          *chain;
-    ngx_pool_large_t     *large;
+    ngx_pool_large_t     *large;    // 大内存, > max 分配出来的内存
     ngx_pool_cleanup_t   *cleanup;
     ngx_log_t            *log;
 };
