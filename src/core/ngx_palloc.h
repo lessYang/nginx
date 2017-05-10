@@ -40,6 +40,8 @@ struct ngx_pool_cleanup_s {
 
 typedef struct ngx_pool_large_s  ngx_pool_large_t;
 
+// 保存大内存的链表, alloc 代表实际内存
+// 
 struct ngx_pool_large_s {
     ngx_pool_large_t     *next;
     void                 *alloc;

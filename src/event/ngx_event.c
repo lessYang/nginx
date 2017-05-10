@@ -423,7 +423,7 @@ ngx_event_init_conf(ngx_cycle_t *cycle, void *conf)
 
 
 static ngx_int_t
-ngx_event_module_init(ngx_cycle_t *cycle)
+ngx_event_module_init(ngx_cycle_t *cycle) // 事件初始化模块
 {
     void              ***cf;
     u_char              *shared;

@@ -200,7 +200,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     new->d.last = m + size;
 
     for (p = pool->current; p->d.next; p = p->d.next) {
-        if (p->d.failed++ > 4) {
+        if (p->d.failed++ > 4) { // 分配内存的时候, 这一段可以跳过了, 因为, 早就满了
             pool->current = p->d.next;
         }
     }
@@ -210,7 +210,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     return m;
 }
 
-
+// 超过maxpage-1 就直接在这里分配内存了
 static void *
 ngx_palloc_large(ngx_pool_t *pool, size_t size)
 {
@@ -231,7 +231,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
             return p;
         }
 
-        if (n++ > 3) {
+        if (n++ > 3) { // 3次失败后就重新寻找寄主, 以后是不是每次都要申请呢
             break;
         }
     }
