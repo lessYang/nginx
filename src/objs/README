@@ -1,0 +1,1 @@
+ngx_module.c 是configure 默认生成的.  这里在程序初始化的时候就设定好了
